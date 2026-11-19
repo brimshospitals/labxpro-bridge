@@ -1,6 +1,6 @@
 {
   "name": "labxpro-bridge",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "LabXpro Bridge: sends results from lab analyzers (ASTM / HL7 / text, serial or LAN) to LabXpro",
   "type": "module",

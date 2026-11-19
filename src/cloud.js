@@ -1,5 +1,5 @@
 // Calls to LabXpro (lims/app/api/instrument/v1). Every call carries the machine's key.
-export const VERSION = "1.0.0";
+export const VERSION = "1.1.0";
 
 export function makeCloud(server, { fetchImpl = globalThis.fetch } = {}) {
   const base = String(server || "").replace(/\/+$/, "");

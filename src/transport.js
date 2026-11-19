@@ -47,15 +47,21 @@ function openTcp(conn, { name, onData, onState }) {
   };
 }
 
+// Tests swap the real port for serialport's mock (no COM port or driver needed)
+let SerialClass = null;
+export function useSerialPortClass(cls) { SerialClass = cls; }
+
 function openSerial(conn, { name, onData, onState }) {
   let port = null;
   let closed = false;
   let retry = null;
   async function open() {
     if (closed) return;
-    let SerialPort;
-    try { ({ SerialPort } = await import("serialport")); } catch {
-      onState("serial support missing (reinstall LabXpro Bridge)"); log("error", `[${name}] the serialport package is not installed`); return;
+    let SerialPort = SerialClass;
+    if (!SerialPort) {
+      try { ({ SerialPort } = await import("serialport")); } catch {
+        onState("serial support missing (reinstall LabXpro Bridge)"); log("error", `[${name}] the serialport package is not installed`); return;
+      }
     }
     port = new SerialPort({
       path: conn.port || "COM1", baudRate: conn.baud || 9600, dataBits: conn.dataBits || 8,

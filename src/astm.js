@@ -1,6 +1,8 @@
 // ASTM E1381 (low level: ENQ / frames / checksum / EOT) and E1394 (records H P O R Q L).
 // Pure code: no ports here. lib/driver.js connects it to a serial or TCP link.
 
+import { quirksFor } from "./quirks.js";
+
 export const ENQ = 0x05, ACK = 0x06, NAK = 0x15, EOT = 0x04, STX = 0x02, ETX = 0x03, ETB = 0x17, CR = 0x0d, LF = 0x0a;
 const MAX_FRAME_TEXT = 240;
 
@@ -123,7 +125,8 @@ export function parseAstm(text) {
       // Q.3 starting range ID: "^261119001A" or "patient^sample"; several may repeat
       for (const one of String(r[2] ?? "").split(repeat)) {
         const c = comps(one, comp);
-        const id = (c[1] || c[0] || "").replace(/\s+/g, "");
+        // "^261119001A", "patient^sample", or Sysmex "^^   261119001A^B" (sample number in the 3rd part)
+        const id = (c[2] && !c[1] ? c[2] : c[1] || c[0] || c[2] || "").replace(/\s+/g, "");
         if (id && id.toUpperCase() !== "ALL") queries.push(id);
       }
     }
@@ -138,15 +141,18 @@ const ts = (d = new Date()) => d.toISOString().replace(/[-:T]/g, "").slice(0, 14
  * Reply to a host query: the tests to run on this tube (from LabXpro), or "no information".
  * order = { sampleId, tests: [{ code }], patient: { name, age, sex } } | null
  */
-export function buildQueryReply(sampleId, order) {
+export function buildQueryReply(sampleId, order, quirks = quirksFor("")) {
   const recs = [`H|\\^&|||LabXpro^Bridge|||||||P|1|${ts()}`];
   if (order && order.tests?.length) {
     const p = order.patient || {};
+    const [o3, o4] = quirks.orderSample(esc(sampleId));
+    const ids = order.tests.map((t) => quirks.testId(esc(t.code)));
     recs.push(`P|1||${esc(sampleId)}||${esc(p.name)}||||${p.sex === "M" || p.sex === "F" ? p.sex : "U"}`);
-    recs.push(`O|1|${esc(sampleId)}||${order.tests.map((t) => `^^^${esc(t.code)}`).join("\\")}|R||||||A||||||||||||||O`);
+    const groups = quirks.perTestOrder ? ids.map((id) => [id]) : [ids];
+    groups.forEach((g, i) => recs.push(`O|${i + 1}|${o3}|${o4}|${g.join("\\")}|R||||||A||||||||||||||O`));
     recs.push("L|1|N");
   } else {
-    recs.push("L|1|I");   // no information for this sample
+    recs.push(...quirks.noOrder());   // no tests for this sample
   }
   return recs;
 }

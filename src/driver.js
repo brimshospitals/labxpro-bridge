@@ -5,6 +5,7 @@ import { openTransport } from "./transport.js";
 import { AstmReceiver, parseAstm, buildFrames, buildQueryReply as astmQueryReply, ENQ, ACK, NAK, EOT } from "./astm.js";
 import { MllpReceiver, parseHl7, hl7Results, hl7QuerySample, buildAck, buildQueryReply as hl7QueryReply, frame } from "./hl7.js";
 import { TextReceiver, parseText } from "./text.js";
+import { quirksFor } from "./quirks.js";
 import { log, rawLog } from "./log.js";
 
 export const keyId = (key) => createHash("sha256").update(String(key)).digest("hex").slice(0, 12);
@@ -107,7 +108,7 @@ export class MachineDriver {
 
   async answerAstmQuery(sampleId) {
     const order = this.cfg.hostQuery ? await this.lookup(sampleId) : null;
-    await this.sendAstm(buildFrames(astmQueryReply(sampleId, order)));
+    await this.sendAstm(buildFrames(astmQueryReply(sampleId, order, quirksFor(this.cfg.preset))));
   }
 
   // ── ASTM: our side talks (ENQ, frames, EOT), each step waits for the analyzer's ACK ──
