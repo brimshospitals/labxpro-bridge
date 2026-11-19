@@ -1,0 +1,9 @@
+{
+  "server": "https://www.labxpro.in",
+  "statusPort": 4545,
+  "rawLog": true,
+  "machines": [
+    { "label": "CBC machine", "key": "mk_paste_the_machine_key_from_LabXpro_here" },
+    { "label": "Biochemistry", "key": "mk_paste_the_second_key_here", "connection": { "port": "COM4" } }
+  ]
+}

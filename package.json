@@ -1,0 +1,17 @@
+{
+  "name": "labxpro-bridge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LabXpro Bridge: sends results from lab analyzers (ASTM / HL7 / text, serial or LAN) to LabXpro",
+  "type": "module",
+  "main": "src/main.js",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node src/main.js",
+    "test": "node --test test/*.test.js",
+    "package": "node tools/package.mjs"
+  },
+  "dependencies": {
+    "serialport": "12.0.0"
+  }
+}
